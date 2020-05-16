@@ -1,7 +1,8 @@
 import os 
 import pygame
-from math import sin, radians, degrees, copysign
+from math import sin, cos, pi, radians, degrees, copysign
 from pygame.math import Vector2
+from pygame.locals import *
 
 
 class Car:
@@ -33,74 +34,141 @@ class Car:
         self.angle += degrees(angular_velocity) * dt
 
 
+class PadSprite(pygame.sprite.Sprite):
+    normal = pygame.image.load('images/race_pads.png')
+    hit = pygame.image.load('images/collision.png')
+
+    def __init__(self, position):
+        super(PadSprite, self).__init__()
+        self.rect = pygame.Rect(self.normal.get_rect())
+        self.rect.center = position
+        self.image = self.normal
+
+    def update(self, hit_list):
+        if self in hit_list:
+            self.image = self.hit
+        else:
+            self.image = self.normal
+
+
+class Trophy(pygame.sprite.Sprite):
+    def __init__(self, position):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('images/trophy.png')
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = position
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+class CarSprite(pygame.sprite.Sprite):
+    MAX_FORWARD_SPEED = 10
+    MAX_REVERSE_SPEED = 10
+    ACCELERATION = 2
+    TURN_SPEED = 10
+
+    def __init__(self, image, position):
+        pygame.sprite.Sprite.__init__(self)
+        self.src_image = pygame.image.load(image)
+        self.position = position
+        self.speed = self.direction = 0
+        self.k_left = self.k_right = self.k_down = self.k_up = 0
+
+    def update(self, deltat):
+        # SIMULATION
+        self.speed += (self.k_up + self.k_down)
+        if self.speed > self.MAX_FORWARD_SPEED:
+            self.speed = self.MAX_FORWARD_SPEED
+        if self.speed < -self.MAX_REVERSE_SPEED:
+            self.speed = -self.MAX_REVERSE_SPEED
+        self.direction += (self.k_right + self.k_left)
+        x, y = self.position
+        rad = self.direction * pi / 180
+        x += -self.speed * sin(rad)
+        y += -self.speed * cos(rad)
+        self.position = (x, y)
+        self.image = pygame.transform.rotate(self.src_image, self.direction)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.position
+
+
 class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("Car tutorial")
-        width = 1280
-        height = 720
+        width = 1600
+        height = 900
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
         self.ticks = 60
+        self.font = pygame.font.Font(None, 75)
         self.exit = False
 
     def run(self):
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        image_path = os.path.join(current_dir, "car.png")
-        car_image = pygame.image.load(image_path)
-        car = Car(0, 0)
-        ppu = 32
+        car = CarSprite('images/car.png', (10, 730))
+        car_group = pygame.sprite.RenderPlain(car)
+        car.ACCELERATION = 0.1
+
+        pads = [
+            # PadSprite((0, 10)),
+            # PadSprite((600, 10)),
+            # PadSprite((1100, 10)),
+            # PadSprite((100, 150)),
+            # PadSprite((600, 150)),
+            # PadSprite((100, 300)),
+            # PadSprite((800, 300)),
+            # PadSprite((400, 450)),
+            PadSprite((700, 450)),
+            # PadSprite((200, 600)),
+            # PadSprite((900, 600)),
+            # PadSprite((400, 750)),
+            # PadSprite((800, 750)),
+        ]
+        pad_group = pygame.sprite.RenderPlain(*pads)
+
+        trophies = [Trophy((500, 500))]
+        trophy_group = pygame.sprite.RenderPlain(*trophies)
 
         while not self.exit:
             dt = self.clock.get_time() / 1000
 
-            # Event queue
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.exit = True
+                if not hasattr(event, 'key'):
+                    continue
+                down = event.type == KEYDOWN
+                if event.key == K_RIGHT:
+                    car.k_right = down * -3.5
+                elif event.key == K_LEFT:
+                    car.k_left = down * 3.5
+                elif event.key == K_UP:
+                    car.k_up = down * 0.25
+                elif event.key == K_DOWN:
+                    car.k_down = down * -0.4
+                elif event.key == K_ESCAPE:
+                    self.exit = True  # quit the game
 
-            # User input
-            pressed = pygame.key.get_pressed()
-
-            if pressed[pygame.K_UP]:
-                if car.velocity.x < 0:
-                    car.acceleration = car.brake_deceleration
-                else:
-                    car.acceleration += 1 * dt
-            elif pressed[pygame.K_DOWN]:
-                if car.velocity.x > 0:
-                    car.acceleration = -car.brake_deceleration
-                else:
-                    car.acceleration -= 1 * dt
-            elif pressed[pygame.K_SPACE]:
-                if abs(car.velocity.x) > dt * car.brake_deceleration:
-                    car.acceleration = -copysign(car.brake_deceleration, car.velocity.x)
-                else:
-                    car.acceleration = -car.velocity.x / dt
-            else:
-                if abs(car.velocity.x) > dt * car.free_deceleration:
-                    car.acceleration = -copysign(car.free_deceleration, car.velocity.x)
-                else:
-                    if dt != 0:
-                        car.acceleration = -car.velocity.x / dt
-            car.acceleration = max(-car.max_acceleration, min(car.acceleration, car.max_acceleration))
-
-            if pressed[pygame.K_RIGHT]:
-                car.steering -= 30 * dt
-            elif pressed[pygame.K_LEFT]:
-                car.steering += 30 * dt
-            else:
-                car.steering = 0
-            car.steering = max(-car.max_steering, min(car.steering, car.max_steering))
-
-            # Logic
-            car.update(dt)
-
-            # Drawing
             self.screen.fill((0, 0, 0))
-            rotated = pygame.transform.rotate(car_image, car.angle)
-            rect = rotated.get_rect()
-            self.screen.blit(rotated, car.position * ppu - (rect.width / 2, rect.height / 2))
+            car_group.update(dt)
+
+            collisions = pygame.sprite.groupcollide(car_group, pad_group, False, False, collided=None)
+            if collisions != {}:
+                car.image = pygame.image.load('images/collision.png')
+                car.MAX_FORWARD_SPEED = 0
+                car.MAX_REVERSE_SPEED = 0
+                car.k_right = 0
+                car.k_left = 0
+
+            trophy_collision = pygame.sprite.groupcollide(car_group, trophy_group, False, True)
+            if trophy_collision != {}:
+                car.MAX_FORWARD_SPEED = 0
+                car.MAX_REVERSE_SPEED = 0
+
+            pad_group.update(collisions)
+            pad_group.draw(self.screen)
+            car_group.draw(self.screen)
+            trophy_group.draw(self.screen)
+            # Counter Render
             pygame.display.flip()
 
             self.clock.tick(self.ticks)
