@@ -82,6 +82,8 @@ class CarSprite(pygame.sprite.Sprite):
             self.speed = self.MAX_FORWARD_SPEED
         if self.speed < -self.MAX_REVERSE_SPEED:
             self.speed = -self.MAX_REVERSE_SPEED
+        if self.k_up + self.k_down == 0:
+            self.speed += 0.08 if self.speed < 0 else -0.08
         self.direction += (self.k_right + self.k_left)
         x, y = self.position
         rad = self.direction * pi / 180
@@ -143,6 +145,7 @@ class Game:
                     car.k_left = down * 3.5
                 elif event.key == K_UP:
                     car.k_up = down * 0.25
+                    print(car.k_up)
                 elif event.key == K_DOWN:
                     car.k_down = down * -0.4
                 elif event.key == K_ESCAPE:
