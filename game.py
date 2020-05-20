@@ -51,6 +51,36 @@ class PadSprite(pygame.sprite.Sprite):
             self.image = self.normal
 
 
+class VerticalPad(pygame.sprite.Sprite):
+    normal = pygame.image.load('images/vertical_pads.png')
+
+    def __init__(self, position):
+        super(VerticalPad, self).__init__()
+        self.rect = pygame.Rect(self.normal.get_rect())
+        self.rect.center = position
+        self.image = self.normal
+
+
+class SmallHorizontalPad(pygame.sprite.Sprite):
+    normal = pygame.image.load('images/small_horizontal.png')
+
+    def __init__(self, position):
+        super(SmallHorizontalPad, self).__init__()
+        self.rect = pygame.Rect(self.normal.get_rect())
+        self.rect.center = position
+        self.image = self.normal
+
+
+class SmallVerticalPad(pygame.sprite.Sprite):
+    normal = pygame.image.load('images/small_vertical.png')
+
+    def __init__(self, position):
+        super(SmallVerticalPad, self).__init__()
+        self.rect = pygame.Rect(self.normal.get_rect())
+        self.rect.center = position
+        self.image = self.normal
+
+
 class Trophy(pygame.sprite.Sprite):
     def __init__(self, position):
         pygame.sprite.Sprite.__init__(self)
@@ -83,7 +113,12 @@ class CarSprite(pygame.sprite.Sprite):
         if self.speed < -self.MAX_REVERSE_SPEED:
             self.speed = -self.MAX_REVERSE_SPEED
         if self.k_up + self.k_down == 0:
-            self.speed += 0.08 if self.speed < 0 else -0.08
+            if self.speed < 0:
+                self.speed += 0.08
+            elif -0.08 < self.speed < 0.08:
+                self.speed = 0
+            else:
+                self.speed += -0.08
         self.direction += (self.k_right + self.k_left)
         x, y = self.position
         rad = self.direction * pi / 180
@@ -98,9 +133,9 @@ class CarSprite(pygame.sprite.Sprite):
 class Game:
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption("Car tutorial")
-        width = 1600
-        height = 900
+        pygame.display.set_caption("AI Car game")
+        width = 1200
+        height = 800
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
         self.ticks = 60
@@ -108,28 +143,28 @@ class Game:
         self.exit = False
 
     def run(self):
-        car = CarSprite('images/car.png', (10, 730))
+        car = CarSprite('images/car.png', (100, 730))
         car_group = pygame.sprite.RenderPlain(car)
         car.ACCELERATION = 0.1
 
         pads = [
-            # PadSprite((0, 10)),
-            # PadSprite((600, 10)),
-            # PadSprite((1100, 10)),
-            # PadSprite((100, 150)),
-            # PadSprite((600, 150)),
-            # PadSprite((100, 300)),
-            # PadSprite((800, 300)),
-            # PadSprite((400, 450)),
-            PadSprite((700, 450)),
-            # PadSprite((200, 600)),
-            # PadSprite((900, 600)),
-            # PadSprite((400, 750)),
-            # PadSprite((800, 750)),
+            VerticalPad((10, 650)),
+            PadSprite((30, 400)),
+            VerticalPad((200, 800)),
+            SmallHorizontalPad((314, 550)),
+            SmallVerticalPad((270, 270)),
+            SmallVerticalPad((425, 430)),
+            PadSprite((512, 155)),
+            SmallHorizontalPad((540, 315)),
+            SmallVerticalPad((760, 270)),
+            SmallVerticalPad((650, 450)),
+            PadSprite((890, 562)),
+            SmallHorizontalPad((898, 382)),
+            SmallHorizontalPad((1012, 382))
         ]
         pad_group = pygame.sprite.RenderPlain(*pads)
 
-        trophies = [Trophy((500, 500))]
+        trophies = [Trophy((1100, 450))]
         trophy_group = pygame.sprite.RenderPlain(*trophies)
 
         while not self.exit:
@@ -145,11 +180,12 @@ class Game:
                     car.k_left = down * 3.5
                 elif event.key == K_UP:
                     car.k_up = down * 0.25
-                    print(car.k_up)
                 elif event.key == K_DOWN:
                     car.k_down = down * -0.4
                 elif event.key == K_ESCAPE:
                     self.exit = True  # quit the game
+                elif event.key == K_SPACE:
+                    self.run()
 
             self.screen.fill((0, 0, 0))
             car_group.update(dt)
