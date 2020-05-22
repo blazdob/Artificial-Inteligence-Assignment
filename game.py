@@ -141,11 +141,13 @@ class Game:
         self.ticks = 60
         self.font = pygame.font.Font(None, 75)
         self.exit = False
+        self.crashed = False
 
     def run(self):
         car = CarSprite('images/car.png', (100, 730))
         car_group = pygame.sprite.RenderPlain(car)
         car.ACCELERATION = 0.1
+        self.crashed = False
 
         pads = [
             VerticalPad((10, 650)),
@@ -197,6 +199,7 @@ class Game:
                 car.MAX_REVERSE_SPEED = 0
                 car.k_right = 0
                 car.k_left = 0
+                self.crashed = True
 
             trophy_collision = pygame.sprite.groupcollide(car_group, trophy_group, False, True)
             if trophy_collision != {}:
@@ -212,6 +215,9 @@ class Game:
 
             self.clock.tick(self.ticks)
         pygame.quit()
+
+    def is_crashed(self):
+        return self.crashed
 
 
 if __name__ == '__main__':

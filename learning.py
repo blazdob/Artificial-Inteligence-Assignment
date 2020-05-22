@@ -1,10 +1,13 @@
 import pygame
 import json
+from _thread import start_new_thread
+from time import sleep
+
+from game import Game
+from action import Action
 
 
-
-
-class QLearning():
+class QLearning:
     def __init__(self):
         self.gameCNT = 0  # Game count of current run, incremented after every death
         self.DUMPING_N = 500  # Number of iterations to dump Q values to JSON after
@@ -13,6 +16,12 @@ class QLearning():
         self.gama = 0.8
         self.load_qvalues()
         self.moves = []
+        self.game = Game()
+
+    def run_game(self):
+        while not self.game.exit and not self.game.is_crashed():
+            self.act("", "", "")
+            sleep(0.3)
 
     def load_qvalues(self):
         """
@@ -40,13 +49,31 @@ class QLearning():
         """
         Chooses the best action with respect to the current state
         """
-        pass
+        action = Action.ACCELERATE.value
+        QLearning.mock_game_event(action)
+
     def update_scores(self):
         """
         Update qvalues via iterating over experiences
         """
         pass
 
+    @staticmethod
+    def mock_game_event(action):
+        if action == Action.ACCELERATE.value:
+            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_UP})
+        elif action == Action.DECCELERATE.value:
+            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_DOWN})
+        elif action == Action.RIGHT.value:
+            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_LEFT})
+        elif action == Action.LEFT.value:
+            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_RIGHT})
+        elif action == Action.RESTART.value:
+            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_SPACE})
+        pygame.event.post(event)
 
-def checkCrash(player, list_of_obsticles): 
-    pass
+
+if __name__ == "__main__":
+    game = QLearning()
+    start_new_thread(game.game.run, ())
+    game.run_game()
