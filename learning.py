@@ -92,19 +92,19 @@ class QLearning:
             self.qvalues[state][act] = (1-self.lr) * (self.qvalues[state][act]) + self.lr * ( cur_reward + self.discount*max(self.qvalues[res_state]) )
             t += 1
 
-        self.gameCNT += 1  # increase game count
+        self.gameCNT += 1  # povečamo številko
         if dump_qvalues:
-            self.dump_qvalues()  # Dump q values (if game count % DUMPING_N == 0)
-        self.moves = []  # clear history after updating strategies
+            self.dump_qvalues()  
+        self.moves = []  # izbrišemo zgodovino
 
     def map_state(self, xdif, ydif, vel):
         """
         Map the (xdif, ydif, vel) to the respective state, with regards to the grids
         The state is a string, "xdif_ydif_vel"
 
-        X -> [0,...400]
-        Y -> [0,...200]
-        vel -> [-20...20]
+        X -> [0,5,10,...400]
+        Y -> [0,5,10,...200]
+        vel -> [-20,-19,-18,...20]
         """
         pass
 
