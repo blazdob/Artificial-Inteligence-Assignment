@@ -15,6 +15,8 @@ class QLearning:
         self.r = {"noObsticlecloser": 0.1,"obsticle": -1, "noObsticlefurther": -0.1, "final": 100}  # Reward function
         self.gama = 0.8
         self.load_qvalues()
+        self.last_state = "420_240_0"
+        self.last_action = 0 #TODO na nek način je treba označin posamezne akcije, ki so možne
         self.moves = []
         self.game = Game()
 
@@ -45,16 +47,64 @@ class QLearning:
             fill.close()
             print("Q-values updated on local file.")
 
-    def act(self, xdif, ydif, velocity):
+    def act(self, xdif, ydif, vel):
         """
         Chooses the best action with respect to the current state
         """
-        action = Action.ACCELERATE.value
-        QLearning.mock_game_event(action)
+        state = self.map_state(xdif, ydif, vel)
+
+        self.moves.append(
+            (self.last_state, self.last_action, state)
+        )  # dodamo potezo
+
+        self.last_state = state  # posodobimo staro stanje
+
+        if self.qvalues[state][0] >= self.qvalues[state][1]:
+            #TODO
+            action = Action.ACCELERATE.value
+            QLearning.mock_game_event(action)
+            pass #vrnemo akcijo, ki jo 
+        else:
+            #TODO
+            action = Action.ACCELERATE.value
+            QLearning.mock_game_event(action)
+            pass
 
     def update_scores(self):
         """
         Update qvalues via iterating over experiences
+        """
+        history = list(reversed(self.moves)) # da dobimo poteze v tem zaporedju kot so bile prej (lahko bi stack uporabljala ampak okj)
+        
+        #pogoj na to, če se zaletimo
+        crash = True if True else False
+
+        # Q-learning score updates
+        t = 1
+        for exp in history:
+            state = exp[0] #trenutni state
+            act = exp[1] #akcija
+            res_state = exp[2] # naslednji state
+            # Select reward
+            cur_reward = self.r[0] #TODO
+
+            # Update
+            self.qvalues[state][act] = (1-self.lr) * (self.qvalues[state][act]) + self.lr * ( cur_reward + self.discount*max(self.qvalues[res_state]) )
+            t += 1
+
+        self.gameCNT += 1  # increase game count
+        if dump_qvalues:
+            self.dump_qvalues()  # Dump q values (if game count % DUMPING_N == 0)
+        self.moves = []  # clear history after updating strategies
+
+    def map_state(self, xdif, ydif, vel):
+        """
+        Map the (xdif, ydif, vel) to the respective state, with regards to the grids
+        The state is a string, "xdif_ydif_vel"
+
+        X -> [0,...400]
+        Y -> [0,...200]
+        vel -> [0,...20]
         """
         pass
 

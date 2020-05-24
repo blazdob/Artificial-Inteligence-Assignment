@@ -5,13 +5,14 @@ from itertools import chain
 
 qval = {}
 count = 0
-# X -> [0,..400] (diskretizacija na )
-# Y -> [-300, -290 ... 160] U [180, 240 ... 420]
-for x in range(0, 400):
-    for y in range(0, 200):
-        # [up, down, right, left, upright, upleft, downright, downleft]
-        qval[str(x) + "_" + str(y)] = [0,0,0,0,0,0,0]
-        count += 1
+# X -> [0,..400] 
+# Y -> [0,..200]
+for x in range(0, 400): #vodoravna diskretizacija
+    for y in range(0, 200): #vertikalna diskretizacija
+        for vel in range(0, 20): #diskretizacija hitrosti
+            # [up, down, right, left, upright, upleft, downright, downleft]
+            qval[str(x) + "_" + str(y) + "_" + str(vel)] = [0,0,0,0,0,0,0]
+            count += 1
 
 print(count)
 fd = open("qvalues.json", "w")
