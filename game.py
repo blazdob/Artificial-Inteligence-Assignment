@@ -3,6 +3,8 @@ import pygame
 from math import sin, cos, pi, radians, degrees, copysign
 from pygame.math import Vector2
 from pygame.locals import *
+import math
+from shapely.geometry import LineString
 
 
 class Car:
@@ -130,6 +132,69 @@ class CarSprite(pygame.sprite.Sprite):
         self.rect.center = self.position
 
 
+class Sensors:
+    def __init__(self, car_pos, car_dir, pad_group):
+        self.pad_group = pad_group
+        self.sensor_dirs = [0, 45, 90, 135, 180]
+        self.sens_objs = []
+        self.update_sensors(car_pos, car_dir)
+
+    def update_sensors(self, car_pos, car_dir):
+        self.sens_objs = []
+        l_len = 10000
+        sensor_rel_dirs = list(map(lambda sen: sen + car_dir, self.sensor_dirs))
+        for s in sensor_rel_dirs:
+            inf_line = (car_pos, (car_pos[0] + l_len * math.cos(math.radians(s)), car_pos[1] - l_len * math.sin(math.radians(s))))
+            self.sens_objs.append(Sensor(car_pos, Sensors.get_closest_pad_intersection(car_pos, inf_line, self.pad_group)))
+
+    @staticmethod
+    def get_closest_pad_intersection(car_pos, line, pad_group):
+        res = []
+        x, y = car_pos
+        for pad in pad_group:
+            res.append(line_intersection(line, (pad.rect.topleft, pad.rect.bottomleft)))
+            res.append(line_intersection(line, (pad.rect.topleft, pad.rect.topright)))
+            res.append(line_intersection(line, (pad.rect.topright, pad.rect.bottomright)))
+            res.append(line_intersection(line, (pad.rect.bottomleft, pad.rect.bottomright)))
+        return min(res, key=lambda point: distance(x, y, point[0], point[1]))
+
+
+class Sensor:
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+        self.length = distance(start[0], start[1], end[0], end[1])
+
+    def draw(self, canvas):
+        if self.length <= 40:
+            color = Color(255, 0, 0)
+        elif 20 < self.length <= 150:
+            color = Color(255, 69, 0)
+        else:
+            color = Color(50, 205, 50)
+        pygame.draw.line(canvas, color, self.start, self.end)
+
+
+def distance(x, y, point_x, point_y):
+    return math.sqrt((point_x - x)**2 + (point_y - y)**2)
+
+pads = [
+    VerticalPad((10, 650)),
+    PadSprite((30, 400)),
+    VerticalPad((200, 800)),
+    SmallHorizontalPad((314, 550)),
+    SmallVerticalPad((270, 270)),
+    SmallVerticalPad((425, 430)),
+    PadSprite((512, 155)),
+    SmallHorizontalPad((540, 315)),
+    SmallVerticalPad((760, 270)),
+    SmallVerticalPad((650, 450)),
+    PadSprite((890, 562)),
+    SmallHorizontalPad((898, 382)),
+    SmallHorizontalPad((1012, 382))
+]
+
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -138,6 +203,8 @@ class Game:
         height = 800
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
+        self.pad_group = pygame.sprite.RenderPlain(*pads)
+        self.sensors = []
         self.ticks = 60
         self.font = pygame.font.Font(None, 75)
         self.exit = False
@@ -146,25 +213,9 @@ class Game:
     def run(self):
         car = CarSprite('images/car.png', (100, 730))
         car_group = pygame.sprite.RenderPlain(car)
+        self.sensors = Sensors(car.position, car.direction, self.pad_group)
         car.ACCELERATION = 0.1
         self.crashed = False
-
-        pads = [
-            VerticalPad((10, 650)),
-            PadSprite((30, 400)),
-            VerticalPad((200, 800)),
-            SmallHorizontalPad((314, 550)),
-            SmallVerticalPad((270, 270)),
-            SmallVerticalPad((425, 430)),
-            PadSprite((512, 155)),
-            SmallHorizontalPad((540, 315)),
-            SmallVerticalPad((760, 270)),
-            SmallVerticalPad((650, 450)),
-            PadSprite((890, 562)),
-            SmallHorizontalPad((898, 382)),
-            SmallHorizontalPad((1012, 382))
-        ]
-        pad_group = pygame.sprite.RenderPlain(*pads)
 
         trophies = [Trophy((1100, 450))]
         trophy_group = pygame.sprite.RenderPlain(*trophies)
@@ -192,7 +243,7 @@ class Game:
             self.screen.fill((0, 0, 0))
             car_group.update(dt)
 
-            collisions = pygame.sprite.groupcollide(car_group, pad_group, False, False, collided=None)
+            collisions = pygame.sprite.groupcollide(car_group, self.pad_group, False, False, collided=None)
             if collisions != {}:
                 car.image = pygame.image.load('images/collision.png')
                 car.MAX_FORWARD_SPEED = 0
@@ -203,11 +254,16 @@ class Game:
 
             trophy_collision = pygame.sprite.groupcollide(car_group, trophy_group, False, True)
             if trophy_collision != {}:
+                print(trophy_collision)
                 car.MAX_FORWARD_SPEED = 0
                 car.MAX_REVERSE_SPEED = 0
 
-            pad_group.update(collisions)
-            pad_group.draw(self.screen)
+            self.sensors.update_sensors(car.position, car.direction)
+            for sens in self.sensors.sens_objs:
+                sens.draw(self.screen)
+
+            self.pad_group.update(collisions)
+            self.pad_group.draw(self.screen)
             car_group.draw(self.screen)
             trophy_group.draw(self.screen)
             # Counter Render
@@ -218,6 +274,20 @@ class Game:
 
     def is_crashed(self):
         return self.crashed
+
+    def get_sensor_values(self):
+        return list(map(lambda sens: sens.length, self.sensors.sens_obj))
+
+
+def line_intersection(line1, line2):
+    line1 = LineString(line1)
+    line2 = LineString(line2)
+
+    intersection = line1.intersection(line2)
+    if intersection.is_empty:
+        return 100000, 100000
+    else:
+        return intersection.x, intersection.y
 
 
 if __name__ == '__main__':
