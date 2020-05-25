@@ -15,7 +15,7 @@ class QLearning:
         self.r = {"noObsticlecloser": 0.1,"obsticle": -1, "noObsticlefurther": -0.1, "final": 100}  # Reward function
         self.gama = 0.8
         self.load_qvalues()
-        self.last_state = "420_240_0"
+        self.last_state = "400_200_-10"
         self.last_action = 0 #TODO na nek način je treba označin posamezne akcije, ki so možne
         self.moves = []
         self.game = Game()
@@ -31,13 +31,13 @@ class QLearning:
         """
         self.qvalues = {}
         try:
-            fill = open("data/qvalues.json", "r")
+            fill = open("qvalues.json", "r")
         except IOError:
             return
         self.qvalues = json.load(fill)
         fill.close()
 
-    def dump_qvalues(self, force=False):
+    def dump_qvalues(self, force=True):
         """
         Dump the qvalues to the JSON file
         """
@@ -51,30 +51,44 @@ class QLearning:
         """
         Chooses the best action with respect to the current state
         """
-        state = self.map_state(xdif, ydif, vel)
+        state = self.map_state(xdif, ydif, vel, self.game.get_sensor_values())
 
         self.moves.append(
             (self.last_state, self.last_action, state)
         )  # dodamo potezo
 
         self.last_state = state  # posodobimo staro stanje
-
-        if self.qvalues[state][0] >= self.qvalues[state][1]:
+        # move forward
+        if True:
             #TODO
             action = Action.ACCELERATE.value
             QLearning.mock_game_event(action)
+            self.last_action = 0
             pass #vrnemo akcijo, ki jo 
-        else:
+        elif True:
             #TODO
-            action = Action.ACCELERATE.value
+            action = Action.DECCELERATE.value
             QLearning.mock_game_event(action)
+            self.last_action = 0
+            pass
+        elif True:
+             #TODO
+            action = Action.RIGHT.value
+            QLearning.mock_game_event(action)
+            self.last_action = 0
+            pass
+        elif True:
+             #TODO
+            action = Action.LEFT.value
+            QLearning.mock_game_event(action)
+            self.last_action = 0
             pass
 
     def update_scores(self):
         """
         Update qvalues via iterating over experiences
         """
-        history = list(reversed(self.moves)) # da dobimo poteze v tem zaporedju kot so bile prej (lahko bi stack uporabljala ampak okj)
+        history = list(reversed(self.moves))
         
         #pogoj na to, če se zaletimo
         crash = True if True else False
@@ -97,7 +111,7 @@ class QLearning:
             self.dump_qvalues()  
         self.moves = []  # izbrišemo zgodovino
 
-    def map_state(self, xdif, ydif, vel):
+    def map_state(self, xdif, ydif, vel, sensorVal):
         """
         Map the (xdif, ydif, vel) to the respective state, with regards to the grids
         The state is a string, "xdif_ydif_vel"
@@ -106,7 +120,8 @@ class QLearning:
         Y -> [0,5,10,...200]
         vel -> [-20,-19,-18,...20]
         """
-        pass
+        print(sensorVal)
+        return "0_0_10"
 
     @staticmethod
     def mock_game_event(action):
