@@ -135,7 +135,7 @@ class CarSprite(pygame.sprite.Sprite):
 class Sensors:
     def __init__(self, car_pos, car_dir, pad_group):
         self.pad_group = pad_group
-        self.sensor_dirs = [0, 45, 90, 135, 180]
+        self.sensor_dirs = [30, 60, 90, 120, 150]
         self.sens_objs = []
         self.update_sensors(car_pos, car_dir)
 
