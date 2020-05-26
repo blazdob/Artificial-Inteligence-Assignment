@@ -112,15 +112,16 @@ class Sensor:
         self.start = start
         self.end = end
         self.length = distance(start[0], start[1], end[0], end[1])
+        if self.length <= 40:
+            self.color = Color(255, 0, 0)
+        elif 20 < self.length <= 150:
+            self.color = Color(255, 69, 0)
+        else:
+            self.color = Color(50, 205, 50)
 
     def draw(self, canvas):
-        if self.length <= 40:
-            color = Color(255, 0, 0)
-        elif 20 < self.length <= 150:
-            color = Color(255, 69, 0)
-        else:
-            color = Color(50, 205, 50)
-        pygame.draw.line(canvas, color, self.start, self.end)
+
+        pygame.draw.line(canvas, self.color, self.start, self.end)
 
 
 def distance(x, y, point_x, point_y):
@@ -216,20 +217,43 @@ class Game:
         return self.crashed
 
     def get_sensor_values(self):
-        return list(map(lambda sens: sens.length, self.sensors.sens_obj))
+        return self.sensors.sens_objs
 
     def step(self, action):
         """
         Function returnes the next step 
         
                 next_state, reward, done, prob = env.step(action) 
-                next_state.... the [x,y] coordinates of the next state
+                next_state.... the sensors of the next state state
                 reward.... the reward that he gets to move to this state
                 done.... if it got hit or not
                 prob..... probabilities
+
+                Diskretizacija 
+                _____ _1200_ _ __ _ _
+                |                   |
+            900 |                   |
+                |___________________|
+                30
+
+            dva
+
+            
+
         """
-        
-        return self.get_sensor_values()
+        next_state = 0
+        reward = 0
+        done = False
+        """ sens_objs = self.get_sensor_values()
+        position_value = 0
+        for sensor in sens_objs:
+            if sensor.color == Color(255, 0, 0):
+                position_value += 0.5 * sensor.length
+            elif sensor.color == Color(255, 69, 0):
+                position_value += 0.3 * sensor.length
+            elif sensor.color == Color(50, 255, 50):
+                position_value += 0.05 * sensor.length """
+        return 
 
 def line_intersection(line1, line2):
     line1 = LineString(line1)

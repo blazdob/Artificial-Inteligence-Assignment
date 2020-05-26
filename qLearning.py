@@ -19,7 +19,7 @@ class Qlearning:
         
         Returns a function that takes the state 
         as an input and returns the probabilities 
-        for each action in the form of a numpy array  
+        for each action in the form of a numpy array 
         of length of the action space(set of possible actions). 
         """
         def policyFunction(state): 
@@ -34,8 +34,7 @@ class Qlearning:
         return policyFunction 
 
     
-    def qLearning(self, env, num_episodes, discount_factor = 1.0, 
-                                alpha = 0.6, epsilon = 0.1): 
+    def qLearning(self, env, num_episodes, discount_factor = 1.0, alpha = 0.6, epsilon = 0.1): 
         """ 
         Q-Learning algorithm: Off-policy TD control. 
         Finds the optimal greedy policy while improving 
@@ -43,7 +42,7 @@ class Qlearning:
         
         # Action value function 
         # A nested dictionary that maps 
-        # state -> (action -> action-value). 
+        # state -> (action -> action-value).  PRI NAJU JE TOLE  env.action_space_length = 2 (levo, desno)
         Q = defaultdict(lambda: np.zeros(env.action_space_length)) 
     
         # Keeps track of useful statistics 
@@ -53,13 +52,13 @@ class Qlearning:
         
         # Create an epsilon greedy policy function 
         # appropriately for environment action space 
-        policy = self.createEpsilonGreedyPolicy(Q, epsilon, env.action_space_length) 
+        policy = self.createEpsilonGreedyPolicy(Q, epsilon, env.action_space_length)  #PRI NAJU JE TOLE  env.action_space_length = 2 (levo, desno)
         
         # For every episode 
         for ith_episode in range(num_episodes): 
             
             # Reset the environment and pick the first action 
-            state = env.reset() 
+            state = env.reset()  #TODO CONNECT 
 
             for t in itertools.count(): 
                 
@@ -73,7 +72,8 @@ class Qlearning:
                         p = action_probabilities) 
                 
                 # take action and get reward, transit to next state 
-                next_state, reward, done, prob = env.step(action) 
+                #next_state, reward, done, _ = env.step(action)  #TODO
+                next_state, reward, done = env.step(action)  #TODO
                 
                 # Update statistics 
                 stats.episode_rewards[ith_episode] += reward 
