@@ -218,6 +218,18 @@ class Game:
     def get_sensor_values(self):
         return list(map(lambda sens: sens.length, self.sensors.sens_obj))
 
+    def step(self, action):
+        """
+        Function returnes the next step 
+        
+                next_state, reward, done, prob = env.step(action) 
+                next_state.... the [x,y] coordinates of the next state
+                reward.... the reward that he gets to move to this state
+                done.... if it got hit or not
+                prob..... probabilities
+        """
+        
+        return self.get_sensor_values()
 
 def line_intersection(line1, line2):
     line1 = LineString(line1)

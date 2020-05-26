@@ -44,7 +44,7 @@ class Qlearning:
         # Action value function 
         # A nested dictionary that maps 
         # state -> (action -> action-value). 
-        Q = defaultdict(lambda: np.zeros(env.action_space.n)) 
+        Q = defaultdict(lambda: np.zeros(env.action_space_length)) 
     
         # Keeps track of useful statistics 
         stats = plotting.EpisodeStats( 
@@ -53,14 +53,14 @@ class Qlearning:
         
         # Create an epsilon greedy policy function 
         # appropriately for environment action space 
-        policy = self.createEpsilonGreedyPolicy(Q, epsilon, env.action_space.n) 
+        policy = self.createEpsilonGreedyPolicy(Q, epsilon, env.action_space_length) 
         
         # For every episode 
         for ith_episode in range(num_episodes): 
             
             # Reset the environment and pick the first action 
             state = env.reset() 
-            
+
             for t in itertools.count(): 
                 
                 # get probabilities of all actions from current state 
@@ -71,10 +71,10 @@ class Qlearning:
                 action = np.random.choice(np.arange( 
                         len(action_probabilities)), 
                         p = action_probabilities) 
-    
+                
                 # take action and get reward, transit to next state 
-                next_state, reward, done, _ = env.step(action) 
-    
+                next_state, reward, done, prob = env.step(action) 
+                
                 # Update statistics 
                 stats.episode_rewards[ith_episode] += reward 
                 stats.episode_lengths[ith_episode] = t 

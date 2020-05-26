@@ -28,7 +28,7 @@ class WindyGridworldEnv(discrete.DiscreteEnv):
 
     def __init__(self):
         self.shape = (7, 10)
-
+        self.action_space_length = 4
         nS = np.prod(self.shape)
         nA = 4
 
