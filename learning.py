@@ -51,13 +51,17 @@ class QLearning:
         """
         Chooses the best action with respect to the current state
         """
+        #### POLICY
         state = self.map_state(xdif, ydif, vel, self.game.get_sensor_values())
+
 
         self.moves.append(
             (self.last_state, self.last_action, state)
         )  # dodamo potezo
 
         self.last_state = state  # posodobimo staro stanje
+
+        ##### STEP
         # move forward
         if True:
             #TODO
