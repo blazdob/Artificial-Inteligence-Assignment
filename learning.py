@@ -12,7 +12,7 @@ class QLearning:
         self.gameCNT = 0  # Game count of current run, incremented after every death
         self.DUMPING_N = 500  # Number of iterations to dump Q values to JSON after
         self.discount = 0.975
-        self.r = {"noObsticlecloser": 0.1,"obsticle": -1, "noObsticlefurther": -0.1, "final": 100}  # Reward function
+        self.r = {"noObsticlecloser": 0.1, "obsticle": -1, "noObsticlefurther": -0.1}  # Reward function
         self.gama = 0.8
         self.load_qvalues()
         self.last_state = "400_200_-10"
@@ -64,18 +64,6 @@ class QLearning:
         ##### STEP
         # move forward
         if True:
-            #TODO
-            action = Action.ACCELERATE.value
-            QLearning.mock_game_event(action)
-            self.last_action = 0
-            pass #vrnemo akcijo, ki jo 
-        elif True:
-            #TODO
-            action = Action.DECCELERATE.value
-            QLearning.mock_game_event(action)
-            self.last_action = 0
-            pass
-        elif True:
              #TODO
             action = Action.RIGHT.value
             QLearning.mock_game_event(action)
@@ -129,11 +117,7 @@ class QLearning:
 
     @staticmethod
     def mock_game_event(action):
-        if action == Action.ACCELERATE.value:
-            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_UP})
-        elif action == Action.DECCELERATE.value:
-            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_DOWN})
-        elif action == Action.RIGHT.value:
+        if action == Action.RIGHT.value:
             event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_LEFT})
         elif action == Action.LEFT.value:
             event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_RIGHT})
