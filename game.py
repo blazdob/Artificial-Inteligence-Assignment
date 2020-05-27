@@ -3,8 +3,11 @@ from math import sin, cos, pi, radians, degrees, copysign
 from pygame.math import Vector2
 from pygame.locals import *
 import math
+import numpy as np
+import time
 from shapely.geometry import LineString
 
+from action import Action
 
 class PadSprite(pygame.sprite.Sprite):
     normal = pygame.image.load('images/race_pads.png')
@@ -54,9 +57,6 @@ class SmallVerticalPad(pygame.sprite.Sprite):
 
 
 class CarSprite(pygame.sprite.Sprite):
-    MAX_FORWARD_SPEED = 10
-    MAX_REVERSE_SPEED = 10
-    ACCELERATION = 2
     TURN_SPEED = 10
 
     def __init__(self, image, position):
@@ -65,7 +65,16 @@ class CarSprite(pygame.sprite.Sprite):
         self.position = position
         self.speed = 5
         self.direction = 0
-        self.k_left = self.k_right = self.k_down = self.k_up = 0
+        self.k_left = self.k_right = 0
+        self.crashed = False
+
+    def restart_position(self, position):
+        self.position = position
+        self.speed = 5
+        self.direction = 0
+        self.k_left = self.k_right = 0
+        self.crashed = False
+
 
     def update(self, deltat):
         # SIMULATION
@@ -160,100 +169,81 @@ class Game:
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
         self.pad_group = pygame.sprite.RenderPlain(*pads)
-        self.sensors = []
+        self.car = CarSprite('images/car.png', (100, 730))
+        self.sensors = Sensors(self.car.position, self.car.direction, self.pad_group)
         self.ticks = 60
         self.font = pygame.font.Font(None, 75)
         self.exit = False
-        self.crashed = False
 
-    def run(self):
-        car = CarSprite('images/car.png', (100, 730))
-        car_group = pygame.sprite.RenderPlain(car)
-        self.sensors = Sensors(car.position, car.direction, self.pad_group)
-        car.ACCELERATION = 0.1
-        self.crashed = False
+    def run(self, action):
+        car_group = pygame.sprite.RenderPlain(self.car)
+        self.sensors = Sensors(self.car.position, self.car.direction, self.pad_group)
 
-        while not self.exit:
-            dt = self.clock.get_time() / 1000
+        dt = self.clock.get_time() / 1000
 
-            for event in pygame.event.get():
-                if not hasattr(event, 'key'):
-                    continue
-                down = event.type == KEYDOWN
-                if event.key == K_RIGHT:
-                    car.k_right = down * -3.5
-                elif event.key == K_LEFT:
-                    car.k_left = down * 3.5
-                elif event.key == K_ESCAPE:
-                    self.exit = True  # quit the game
-                elif event.key == K_SPACE:
-                    self.run()
+        if action == 0:
+            self.car.k_right = -3.5
+            self.car.k_left = 0
+        elif action == 1:
+            self.car.k_left = 3.5
+            self.car.k_right = 0
 
-            self.screen.fill((0, 0, 0))
-            car_group.update(dt)
+        self.screen.fill((0, 0, 0))
+        car_group.update(dt)
 
-            collisions = pygame.sprite.groupcollide(car_group, self.pad_group, False, False, collided=None)
-            if collisions != {}:
-                car.image = pygame.image.load('images/collision.png')
-                car.speed = 0
-                car.k_right = 0
-                car.k_left = 0
-                self.crashed = True
+        collisions = pygame.sprite.groupcollide(car_group, self.pad_group, False, False, collided=None)
+        if collisions != {}:
+            self.car.speed = 0
+            self.car.k_right = 0
+            self.car.k_left = 0
+            self.car.crashed = True
 
-            self.sensors.update_sensors(car.position, car.direction)
-            for sens in self.sensors.sens_objs:
-                sens.draw(self.screen)
+        self.sensors.update_sensors(self.car.position, self.car.direction)
+        for sens in self.sensors.sens_objs:
+            sens.draw(self.screen)
 
-            self.pad_group.update(collisions)
-            self.pad_group.draw(self.screen)
-            car_group.draw(self.screen)
-            # Counter Render
-            pygame.display.flip()
+        self.pad_group.update(collisions)
+        self.pad_group.draw(self.screen)
+        car_group.draw(self.screen)
+        # Counter Render
+        pygame.display.flip()
 
-            self.clock.tick(self.ticks)
-        pygame.quit()
+        self.clock.tick(self.ticks)
+        # pygame.quit()
 
     def is_crashed(self):
-        return self.crashed
+        return self.car.crashed
 
     def get_sensor_values(self):
         return self.sensors.sens_objs
 
     def step(self, action):
-        """
-        Function returnes the next step 
+
+        self.run(action)
+
+        state = [2 - (150 / (sen.length + 5)) for sen in self.get_sensor_values()]
+        state = np.array([state])
         
-                next_state, reward, done, prob = env.step(action) 
-                next_state.... the sensors of the next state state
-                reward.... the reward that he gets to move to this state
-                done.... if it got hit or not
-                prob..... probabilities
-
-                Diskretizacija 
-                _____ _1200_ _ __ _ _
-                |                   |
-            900 |                   |
-                |___________________|
-                30
-
-            dva
-
-            
-
-        """
-        next_state = 0
         reward = 0
-        done = False
-        """ sens_objs = self.get_sensor_values()
-        position_value = 0
-        for sensor in sens_objs:
-            if sensor.color == Color(255, 0, 0):
-                position_value += 0.5 * sensor.length
-            elif sensor.color == Color(255, 69, 0):
-                position_value += 0.3 * sensor.length
-            elif sensor.color == Color(50, 255, 50):
-                position_value += 0.05 * sensor.length """
-        return 
+        if self.is_crashed():
+            reward = -500
+            self.car.restart_position((100, 730))
+        else:
+            reward = -sum(state[0])
+
+        time.sleep(0.2)
+        print(reward)
+        return reward, state
+
+    @staticmethod
+    def mock_game_event(action):
+        if action == Action.RIGHT.value:
+            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_LEFT})
+        elif action == Action.LEFT.value:
+            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_RIGHT})
+        elif action == Action.RESTART.value:
+            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_SPACE})
+        pygame.event.post(event)
 
 def line_intersection(line1, line2):
     line1 = LineString(line1)
@@ -266,6 +256,7 @@ def line_intersection(line1, line2):
         return intersection.x, intersection.y
 
 
-if __name__ == '__main__':
+
+""" if __name__ == '__main__':
     game = Game()
-    game.run()
+    game.run() """

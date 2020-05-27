@@ -4,10 +4,12 @@ import csv
 from _thread import start_new_thread
 import os.path
 import timeit
+import time
 
+from game import Game
 from nn import neural_net, LossHistory  
 
-NUM_INPUT = 3
+NUM_INPUT = 5
 GAMMA = 0.9  # Forgetting.
 
 
@@ -32,12 +34,10 @@ def train_net(model, params):
     # Create a new game instance.
     # game_state = carmunk.GameState()
     game = Game()
-    start_new_thread(game.run, ())
 
     # Get initial state by doing nothing and getting the state.
     # _, state = game_state.frame_step((2))
-    state, _ = game.step(2)
-
+    _, state = game.step(2)
     # Let's time it.
     start_time = timeit.default_timer()
 
@@ -56,11 +56,10 @@ def train_net(model, params):
             action = (np.argmax(qval))  # best
 
         # Take action, observe new state and get our treat.
-        reward, new_state = game.step(action)
+        reward, new_state = game.step(action)        
 
         # Experience replay storage.
         replay.append((state, action, reward, new_state))
-
         # If we're done observing, start training.
         if t > observe:
 
@@ -70,7 +69,6 @@ def train_net(model, params):
 
             # Randomly sample our experience replay memory
             minibatch = random.sample(replay, batchSize)
-
             # Get training values.
             X_train, y_train = process_minibatch2(minibatch, model)
 
@@ -117,6 +115,7 @@ def train_net(model, params):
                                overwrite=True)
             print("Saving model %s - %d" % (filename, t))
 
+
     # Log results after we're done all frames.
     log_results(filename, data_collect, loss_log)
 
@@ -142,10 +141,10 @@ def process_minibatch2(minibatch, model):
 
     mb_len = len(minibatch)
 
-    old_states = np.zeros(shape=(mb_len, 3))
+    old_states = np.zeros(shape=(mb_len, 5))
     actions = np.zeros(shape=(mb_len,))
     rewards = np.zeros(shape=(mb_len,))
-    new_states = np.zeros(shape=(mb_len, 3))
+    new_states = np.zeros(shape=(mb_len, 5))
 
     for i, m in enumerate(minibatch):
         old_state_m, action_m, reward_m, new_state_m = m
@@ -184,7 +183,7 @@ def process_minibatch(minibatch, model):
         newQ = model.predict(new_state_m, batch_size=1)
         # Get our predicted best move.
         maxQ = np.max(newQ)
-        y = np.zeros((1, 3))
+        y = np.zeros((1, 5))
         y[:] = old_qval[:]
         # Check for terminal state.
         if reward_m != -500:  # non-terminal state
@@ -194,7 +193,7 @@ def process_minibatch(minibatch, model):
         # Update the value for the action we took.
         y[0][action_m] = update
         X_train.append(old_state_m.reshape(NUM_INPUT,))
-        y_train.append(y.reshape(3,))
+        y_train.append(y.reshape(5,))
 
     X_train = np.array(X_train)
     y_train = np.array(y_train)
