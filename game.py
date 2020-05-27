@@ -6,6 +6,7 @@ import math
 import numpy as np
 import time
 from shapely.geometry import LineString
+import random
 
 from action import Action
 
@@ -209,7 +210,6 @@ class Game:
         pygame.display.flip()
 
         self.clock.tick(self.ticks)
-        # pygame.quit()
 
     def is_crashed(self):
         return self.car.crashed
@@ -221,18 +221,14 @@ class Game:
 
         self.run(action)
 
-        state = [2 - (150 / (sen.length + 5)) for sen in self.get_sensor_values()]
+        state = [-(200 / (sen.length - 15)) for sen in self.get_sensor_values()]
         state = np.array([state])
         
-        reward = 0
         if self.is_crashed():
             reward = -500
             self.car.restart_position((100, 730))
         else:
-            reward = -sum(state[0])
-
-        time.sleep(0.2)
-        print(reward)
+            reward = 10 + sum(state[0])
         return reward, state
 
     @staticmethod
@@ -245,6 +241,7 @@ class Game:
             event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_SPACE})
         pygame.event.post(event)
 
+
 def line_intersection(line1, line2):
     line1 = LineString(line1)
     line2 = LineString(line2)
@@ -256,7 +253,7 @@ def line_intersection(line1, line2):
         return intersection.x, intersection.y
 
 
-
-""" if __name__ == '__main__':
-    game = Game()
-    game.run() """
+# if __name__ == '__main__':
+#     game = Game()
+#     while True:
+#         game.step(random.randint(0, 3))
