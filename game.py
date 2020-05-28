@@ -144,20 +144,21 @@ pads = [
     SmallHorizontalPad((314, 500)),
     SmallVerticalPad((270, 220)),
     SmallVerticalPad((425, 380)),
-    PadSprite((512, 105)),
+    PadSprite((532, 105)),
     SmallHorizontalPad((540, 265)),
-    SmallVerticalPad((760, 220)),
+    SmallVerticalPad((790, 220)),
     SmallVerticalPad((650, 400)),
     SmallHorizontalPad((788, 512)),
-    SmallHorizontalPad((898, 332)),
+    SmallHorizontalPad((928, 332)),
     SmallHorizontalPad((1012, 332)),
     SmallVerticalPad((925, 625)),
-    VerticalPad((1123, 594)),
+    VerticalPad((1123, 584)),
+    VerticalPad((1123, 614)),
     PadSprite((680, 740)),
     PadSprite((440, 740)),
-    PadSprite((240, 850)),
-    SmallHorizontalPad((550, 850)),
-    PadSprite((885, 850))
+    PadSprite((240, 870)),
+    SmallHorizontalPad((550, 870)),
+    PadSprite((885, 870))
 ]
 
 
@@ -253,7 +254,7 @@ def line_intersection(line1, line2):
         return intersection.x, intersection.y
 
 
-# if __name__ == '__main__':
-#     game = Game()
-#     while True:
-#         game.step(random.randint(0, 3))
+if __name__ == '__main__':
+    game = Game()
+    while True:
+        game.step(random.randint(0, 3))
