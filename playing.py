@@ -23,7 +23,7 @@ def play(model):
 
         # Choose action.
         action = (np.argmax(model.predict(state)))
-        
+
         # Take action.
         _, state = game.step(action)
 
@@ -33,6 +33,6 @@ def play(model):
 
 
 if __name__ == "__main__":
-    saved_model = 'saved-models/128-128-64-50000-75000.h5'
-    model = neural_net(NUM_SENSORS, [128, 128], saved_model)
+    saved_model = 'saved-models/0.95-164-150-400-50000-250000.h5'
+    model = neural_net(NUM_SENSORS, [164, 150], saved_model)
     play(model)

@@ -120,7 +120,7 @@ class Game:
         pygame.display.set_caption("AI Car game")
         width = 1200
         height = 900
-        #self.screen = pygame.display.set_mode((width, height))
+        self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
         self.pad_group = pygame.sprite.RenderPlain(*pads)
         self.car = CarSprite('images/car.png', (100, 730))
@@ -132,7 +132,7 @@ class Game:
     def run(self, action):
         car_group = pygame.sprite.RenderPlain(self.car)
         self.sensors = Sensors(self.car.position, self.car.direction, self.pad_group)
-
+        self.car.speed += 0.01
         dt = self.clock.get_time() / 1000
 
         if action == 0:
@@ -142,7 +142,7 @@ class Game:
             self.car.k_left = 3.5
             self.car.k_right = 0
 
-        #self.screen.fill((0, 0, 0))
+        self.screen.fill((0, 0, 0))
         car_group.update(dt)
 
         collisions = pygame.sprite.groupcollide(car_group, self.pad_group, False, False, collided=None)
@@ -153,14 +153,14 @@ class Game:
             self.car.crashed = True
 
         self.sensors.update_sensors(self.car.position, self.car.direction)
-        #for sens in self.sensors.sens_objs:
-        #    sens.draw(self.screen)
+        for sens in self.sensors.sens_objs:
+            sens.draw(self.screen)
 
         self.pad_group.update(collisions)
-        #self.pad_group.draw(self.screen)
-        #car_group.draw(self.screen)
+        self.pad_group.draw(self.screen)
+        car_group.draw(self.screen)
         # Counter Render
-        #pygame.display.flip()
+        pygame.display.flip()
 
         self.clock.tick(self.ticks)
 

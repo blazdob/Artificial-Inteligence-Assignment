@@ -10,7 +10,7 @@ from game import Game
 from nn import neural_net, LossHistory  
 
 NUM_INPUT = 5
-GAMMA = 0.95  # Forgetting.
+GAMMA = 0.9  # Forgetting.
 
 
 def train_net(model, params):
@@ -132,10 +132,7 @@ def log_results(filename, data_collect, loss_log):
             wr.writerow(loss_item)
 
 def process_minibatch(minibatch, model):
-    # by Microos, improve this batch processing function 
-    #   and gain 50~60x faster speed (tested on GTX 1080)
-    #   significantly increase the training FPS
-    
+   
     mb_len = len(minibatch)
 
     old_states = np.zeros(shape=(mb_len, 5))
@@ -188,9 +185,9 @@ def launch_learn(params):
 
 
 if __name__ == "__main__":
-    nn_param = [164, 150]
+    nn_param = [128, 128]
     params = {
-        "batchSize": 400,
+        "batchSize": 64,
         "buffer": 50000,
         "nn": nn_param
     }

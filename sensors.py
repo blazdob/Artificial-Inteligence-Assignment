@@ -1,4 +1,4 @@
-
+import pygame
 import math
 from pygame.locals import *
 from shapely.geometry import LineString
@@ -43,7 +43,6 @@ class Sensor:
             self.color = Color(50, 205, 50)
 
     def draw(self, canvas):
-
         pygame.draw.line(canvas, self.color, self.start, self.end)
 
 
