@@ -132,7 +132,9 @@ class Game:
     def run(self, action):
         car_group = pygame.sprite.RenderPlain(self.car)
         self.sensors = Sensors(self.car.position, self.car.direction, self.pad_group)
-        self.car.speed += 0.01
+        
+        # zvečujemo hitrost
+        # self.car.speed += 0.01
         dt = self.clock.get_time() / 1000
 
         if action == 0:
