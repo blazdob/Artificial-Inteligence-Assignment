@@ -43,10 +43,12 @@ def plot_file(filename, type='loss'):
         # Turn our column into an array.
         y = []
         for row in reader:
-            if type == 'loss':
-                y.append(float(row[0]))
-            else:
-                y.append(float(row[1]))
+            #print(row)
+            if row != []:
+                if type == 'loss':
+                    y.append(float(row[0]))
+                else:
+                    y.append(float(row[1]))
 
         # Running tests will be empty.
         if len(y) == 0:
@@ -90,8 +92,8 @@ if __name__ == "__main__":
     # Get our loss result files.
     os.chdir("results/sonar-frames")
 
-    for f in glob.glob("learn*.csv"):
-        plot_file(f, 'learn')
+    #for f in glob.glob("learn*.csv"):
+    #    plot_file(f, 'learn')
 
     for f in glob.glob("loss*.csv"):
         plot_file(f, 'loss')

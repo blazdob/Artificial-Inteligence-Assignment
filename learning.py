@@ -223,7 +223,7 @@ def launch_learn(params):
 
 
 if __name__ == "__main__":
-    nn_param = [128, 128]
+    nn_param = [16, 16]
     params = {
         "batchSize": 64,
         "buffer": 50000,
