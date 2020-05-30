@@ -10,7 +10,7 @@ from game import Game
 from nn import neural_net, LossHistory  
 
 NUM_INPUT = 5
-GAMMA = 0.9  # Forgetting.
+GAMMA = 0.95  # Forgetting.
 
 
 def train_net(model, params):
@@ -18,7 +18,7 @@ def train_net(model, params):
 
     observe = 1000  # Number of frames to observe before training.
     epsilon = 1
-    train_frames = 100000  # Number of frames to play.
+    train_frames = 250000  # Number of frames to play.
     batchSize = params['batchSize']
     buffer = params['buffer']
 
@@ -70,13 +70,13 @@ def train_net(model, params):
             # Randomly sample our experience replay memory
             minibatch = random.sample(replay, batchSize)
             # Get training values.
-            X_train, y_train = process_minibatch2(minibatch, model)
+            X_train, y_train = process_minibatch(minibatch, model)
 
             # Train the model on this batch.
             history = LossHistory()
             model.fit(
                 X_train, y_train, batch_size=batchSize,
-                nb_epoch=1, verbose=0, callbacks=[history]
+                epochs=1, verbose=0, callbacks=[history]
             )
             loss_log.append(history.losses)
 
@@ -84,7 +84,7 @@ def train_net(model, params):
         state = new_state
 
         # Decrement epsilon over time.
-        if epsilon > 0.1 and t > observe:
+        if epsilon > 0 and t > observe: #if epsilon > 0.1 and t > observe:
             epsilon -= (1.0/train_frames)
 
         # We died, so update stuff.
@@ -131,14 +131,11 @@ def log_results(filename, data_collect, loss_log):
         for loss_item in loss_log:
             wr.writerow(loss_item)
 
-def process_minibatch2(minibatch, model):
+def process_minibatch(minibatch, model):
     # by Microos, improve this batch processing function 
     #   and gain 50~60x faster speed (tested on GTX 1080)
     #   significantly increase the training FPS
     
-    # instead of feeding data to the model one by one, 
-    #   feed the whole batch is much more efficient
-
     mb_len = len(minibatch)
 
     old_states = np.zeros(shape=(mb_len, 5))
@@ -168,41 +165,9 @@ def process_minibatch2(minibatch, model):
     y_train = y
     return X_train, y_train
 
-def process_minibatch(minibatch, model):
-    """This does the heavy lifting, aka, the training. It's super jacked."""
-    X_train = []
-    y_train = []
-    # Loop through our batch and create arrays for X and y
-    # so that we can fit our model at every step.
-    for memory in minibatch:
-        # Get stored values.
-        old_state_m, action_m, reward_m, new_state_m = memory
-        # Get prediction on old state.
-        old_qval = model.predict(old_state_m, batch_size=1)
-        # Get prediction on new state.
-        newQ = model.predict(new_state_m, batch_size=1)
-        # Get our predicted best move.
-        maxQ = np.max(newQ)
-        y = np.zeros((1, 5))
-        y[:] = old_qval[:]
-        # Check for terminal state.
-        if reward_m != -500:  # non-terminal state
-            update = (reward_m + (GAMMA * maxQ))
-        else:  # terminal state
-            update = reward_m
-        # Update the value for the action we took.
-        y[0][action_m] = update
-        X_train.append(old_state_m.reshape(NUM_INPUT,))
-        y_train.append(y.reshape(5,))
-
-    X_train = np.array(X_train)
-    y_train = np.array(y_train)
-
-    return X_train, y_train
-
 
 def params_to_filename(params):
-    return str(params['nn'][0]) + '-' + str(params['nn'][1]) + '-' + \
+    return str(GAMMA) + '-' + str(params['nn'][0]) + '-' + str(params['nn'][1]) + '-' + \
             str(params['batchSize']) + '-' + str(params['buffer'])
 
 
@@ -223,9 +188,9 @@ def launch_learn(params):
 
 
 if __name__ == "__main__":
-    nn_param = [16, 16]
+    nn_param = [164, 150]
     params = {
-        "batchSize": 64,
+        "batchSize": 400,
         "buffer": 50000,
         "nn": nn_param
     }

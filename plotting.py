@@ -33,7 +33,6 @@ def readable_output(filename):
     readable += f_parts[1] + ', ' + f_parts[2] + ' | '
     readable += f_parts[3] + ' | '
     readable += f_parts[4].split('.')[0]
-
     return readable
 
 
@@ -43,7 +42,6 @@ def plot_file(filename, type='loss'):
         # Turn our column into an array.
         y = []
         for row in reader:
-            #print(row)
             if row != []:
                 if type == 'loss':
                     y.append(float(row[0]))
@@ -63,15 +61,14 @@ def plot_file(filename, type='loss'):
             window = 10
         y_av = movingaverage(y, window)
 
-        # Use our moving average to get some metrics.
+        # averages/analitics
         arr = np.array(y_av)
         if type == 'loss':
             print("%f\t%f\n" % (arr.min(), arr.mean()))
         else:
             print("%f\t%f\n" % (arr.max(), arr.mean()))
 
-        # Plot it.
-        plt.clf()  # Clear.
+        plt.clf()  
         plt.title(f)
         # The -50 removes an artificial drop at the end caused by the moving
         # average.
@@ -92,8 +89,8 @@ if __name__ == "__main__":
     # Get our loss result files.
     os.chdir("results/sonar-frames")
 
-    #for f in glob.glob("learn*.csv"):
-    #    plot_file(f, 'learn')
+    for f in glob.glob("learn*.csv"):
+        plot_file(f, 'learn')
 
     for f in glob.glob("loss*.csv"):
         plot_file(f, 'loss')

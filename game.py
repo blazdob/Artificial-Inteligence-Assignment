@@ -5,9 +5,9 @@ from pygame.locals import *
 import math
 import numpy as np
 import time
-from shapely.geometry import LineString
 import random
 
+from sensors import Sensors
 from action import Action
 
 class PadSprite(pygame.sprite.Sprite):
@@ -89,54 +89,6 @@ class CarSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = self.position
 
-
-class Sensors:
-    def __init__(self, car_pos, car_dir, pad_group):
-        self.pad_group = pad_group
-        self.sensor_dirs = [30, 60, 90, 120, 150]
-        self.sens_objs = []
-        self.update_sensors(car_pos, car_dir)
-
-    def update_sensors(self, car_pos, car_dir):
-        self.sens_objs = []
-        l_len = 10000
-        sensor_rel_dirs = list(map(lambda sen: sen + car_dir, self.sensor_dirs))
-        for s in sensor_rel_dirs:
-            inf_line = (car_pos, (car_pos[0] + l_len * math.cos(math.radians(s)), car_pos[1] - l_len * math.sin(math.radians(s))))
-            self.sens_objs.append(Sensor(car_pos, Sensors.get_closest_pad_intersection(car_pos, inf_line, self.pad_group)))
-
-    @staticmethod
-    def get_closest_pad_intersection(car_pos, line, pad_group):
-        res = []
-        x, y = car_pos
-        for pad in pad_group:
-            res.append(line_intersection(line, (pad.rect.topleft, pad.rect.bottomleft)))
-            res.append(line_intersection(line, (pad.rect.topleft, pad.rect.topright)))
-            res.append(line_intersection(line, (pad.rect.topright, pad.rect.bottomright)))
-            res.append(line_intersection(line, (pad.rect.bottomleft, pad.rect.bottomright)))
-        return min(res, key=lambda point: distance(x, y, point[0], point[1]))
-
-
-class Sensor:
-    def __init__(self, start, end):
-        self.start = start
-        self.end = end
-        self.length = distance(start[0], start[1], end[0], end[1])
-        if self.length <= 40:
-            self.color = Color(255, 0, 0)
-        elif 20 < self.length <= 150:
-            self.color = Color(255, 69, 0)
-        else:
-            self.color = Color(50, 205, 50)
-
-    def draw(self, canvas):
-
-        pygame.draw.line(canvas, self.color, self.start, self.end)
-
-
-def distance(x, y, point_x, point_y):
-    return math.sqrt((point_x - x)**2 + (point_y - y)**2)
-
 pads = [
     VerticalPad((10, 610)),
     PadSprite((30, 350)),
@@ -168,7 +120,7 @@ class Game:
         pygame.display.set_caption("AI Car game")
         width = 1200
         height = 900
-        self.screen = pygame.display.set_mode((width, height))
+        #self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
         self.pad_group = pygame.sprite.RenderPlain(*pads)
         self.car = CarSprite('images/car.png', (100, 730))
@@ -190,7 +142,7 @@ class Game:
             self.car.k_left = 3.5
             self.car.k_right = 0
 
-        self.screen.fill((0, 0, 0))
+        #self.screen.fill((0, 0, 0))
         car_group.update(dt)
 
         collisions = pygame.sprite.groupcollide(car_group, self.pad_group, False, False, collided=None)
@@ -201,14 +153,14 @@ class Game:
             self.car.crashed = True
 
         self.sensors.update_sensors(self.car.position, self.car.direction)
-        for sens in self.sensors.sens_objs:
-            sens.draw(self.screen)
+        #for sens in self.sensors.sens_objs:
+        #    sens.draw(self.screen)
 
         self.pad_group.update(collisions)
-        self.pad_group.draw(self.screen)
-        car_group.draw(self.screen)
+        #self.pad_group.draw(self.screen)
+        #car_group.draw(self.screen)
         # Counter Render
-        pygame.display.flip()
+        #pygame.display.flip()
 
         self.clock.tick(self.ticks)
 
@@ -232,26 +184,6 @@ class Game:
             reward = 10 + sum(state[0])
         return reward, state
 
-    @staticmethod
-    def mock_game_event(action):
-        if action == Action.RIGHT.value:
-            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_LEFT})
-        elif action == Action.LEFT.value:
-            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_RIGHT})
-        elif action == Action.RESTART.value:
-            event = pygame.event.Event(pygame.KEYDOWN, {'key': pygame.K_SPACE})
-        pygame.event.post(event)
-
-
-def line_intersection(line1, line2):
-    line1 = LineString(line1)
-    line2 = LineString(line2)
-
-    intersection = line1.intersection(line2)
-    if intersection.is_empty:
-        return 100000, 100000
-    else:
-        return intersection.x, intersection.y
 
 
 if __name__ == '__main__':

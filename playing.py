@@ -22,8 +22,8 @@ def play(model):
         car_distance += 1
 
         # Choose action.
-        action = (np.argmax(model.predict(state, batch_size=1)))
-
+        action = (np.argmax(model.predict(state)))
+        
         # Take action.
         _, state = game.step(action)
 
@@ -33,6 +33,6 @@ def play(model):
 
 
 if __name__ == "__main__":
-    saved_model = 'saved-models/128-128-64-50000-100000.h5'
+    saved_model = 'saved-models/128-128-64-50000-75000.h5'
     model = neural_net(NUM_SENSORS, [128, 128], saved_model)
     play(model)
