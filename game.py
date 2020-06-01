@@ -134,7 +134,8 @@ class Game:
         self.sensors = Sensors(self.car.position, self.car.direction, self.pad_group)
         
         # zvečujemo hitrost
-        # self.car.speed += 0.01
+        #self.car.speed += 0.005
+
         dt = self.clock.get_time() / 1000
 
         if action == 0:

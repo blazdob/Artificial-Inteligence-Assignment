@@ -17,8 +17,8 @@ def train_net(model, params):
     filename = params_to_filename(params)
 
     observe = 1000  # Number of frames to observe before training.
-    epsilon = 1
-    train_frames = 250000  # Number of frames to play.
+    epsilon = 0.5
+    train_frames = 200000  # Number of frames to play.
     batchSize = params['batchSize']
     buffer = params['buffer']
 
@@ -165,7 +165,7 @@ def process_minibatch(minibatch, model):
 
 def params_to_filename(params):
     return str(GAMMA) + '-' + str(params['nn'][0]) + '-' + str(params['nn'][1]) + '-' + \
-            str(params['batchSize']) + '-' + str(params['buffer'])
+            str(params['batchSize']) + '-' + str(params['buffer']) + '-' + "0.5"
 
 
 def launch_learn(params):
@@ -187,7 +187,7 @@ def launch_learn(params):
 if __name__ == "__main__":
     nn_param = [128, 128]
     params = {
-        "batchSize": 64,
+        "batchSize": 100,
         "buffer": 50000,
         "nn": nn_param
     }
