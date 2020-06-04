@@ -89,6 +89,7 @@ class CarSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = self.position
 
+
 pads = [
     VerticalPad((10, 610)),
     HorizontalPad((30, 350)),
@@ -113,6 +114,37 @@ pads = [
     HorizontalPad((885, 870))
 ]
 
+pads2 = [
+    # outer layer
+    # SmallHorizontalPad((1400, 2000)),
+    VerticalPad((10, 610)),
+    VerticalPad((10, 280)),
+    HorizontalPad((250, 40)),
+    HorizontalPad((595, 40)),
+    HorizontalPad((920, 40)),
+    VerticalPad((1170, 610)),
+    VerticalPad((1170, 280)),
+    HorizontalPad((240, 860)),
+    HorizontalPad((590, 860)),
+    HorizontalPad((920, 860)),
+
+    # inner layer
+    VerticalPad((190, 445)),
+    SmallHorizontalPad((306, 205)),
+    SmallVerticalPad((426, 318)),
+    SmallHorizontalPad((540, 445)),
+    SmallHorizontalPad((640, 445)),
+    SmallVerticalPad((756, 333)),
+    SmallHorizontalPad((869, 205)),
+    SmallVerticalPad((590, 153)),
+    VerticalPad((980, 445)),
+    SmallHorizontalPad((869, 695)),
+    SmallVerticalPad((756, 573)),
+    SmallHorizontalPad((306, 685)),
+    SmallVerticalPad((426, 570)),
+    SmallVerticalPad((590, 743)),
+]
+
 
 class Game:
     def __init__(self):
@@ -122,7 +154,7 @@ class Game:
         height = 900
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
-        self.pad_group = pygame.sprite.RenderPlain(*pads)
+        self.pad_group = pygame.sprite.RenderPlain(*pads2)
         self.car = CarSprite('images/car.png', (100, 730))
         self.sensors = Sensors(self.car.position, self.car.direction, self.pad_group)
         self.ticks = 60
