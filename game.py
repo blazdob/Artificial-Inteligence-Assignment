@@ -10,12 +10,12 @@ import random
 from sensors import Sensors
 from action import Action
 
-class PadSprite(pygame.sprite.Sprite):
+class HorizontalPad(pygame.sprite.Sprite):
     normal = pygame.image.load('images/race_pads.png')
     hit = pygame.image.load('images/collision.png')
 
     def __init__(self, position):
-        super(PadSprite, self).__init__()
+        super(HorizontalPad, self).__init__()
         self.rect = pygame.Rect(self.normal.get_rect())
         self.rect.center = position
         self.image = self.normal
@@ -91,12 +91,12 @@ class CarSprite(pygame.sprite.Sprite):
 
 pads = [
     VerticalPad((10, 610)),
-    PadSprite((30, 350)),
+    HorizontalPad((30, 350)),
     SmallVerticalPad((200, 626)),
     SmallHorizontalPad((314, 500)),
     SmallVerticalPad((270, 220)),
     SmallVerticalPad((425, 380)),
-    PadSprite((532, 105)),
+    HorizontalPad((532, 105)),
     SmallHorizontalPad((540, 265)),
     SmallVerticalPad((790, 220)),
     SmallVerticalPad((650, 400)),
@@ -106,11 +106,11 @@ pads = [
     SmallVerticalPad((925, 625)),
     VerticalPad((1123, 584)),
     VerticalPad((1123, 614)),
-    PadSprite((680, 740)),
-    PadSprite((440, 740)),
-    PadSprite((240, 870)),
+    HorizontalPad((680, 740)),
+    HorizontalPad((440, 740)),
+    HorizontalPad((240, 870)),
     SmallHorizontalPad((550, 870)),
-    PadSprite((885, 870))
+    HorizontalPad((885, 870))
 ]
 
 
